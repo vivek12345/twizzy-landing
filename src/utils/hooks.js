@@ -1,5 +1,5 @@
 import { format } from 'date-fns';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 
 export const useCanHover = () => {
   //assume that if device is smaller than 500 there's no hover, but actually check it on the first touch event
@@ -131,4 +131,35 @@ export const useClock = () => {
   }, []);
 
   return time;
+};
+
+export const useBatteryLife = () => {
+  if (!navigator.getBattery) return [false, null, null];
+  const [batteryState, updateBatteryState] = useState({
+    charging: false,
+    level: 0
+  });
+  const battery = useRef(null);
+  const onChange = e => {
+    const { currentTarget } = e;
+    changeBatteryState(currentTarget);
+  };
+  const changeBatteryState = battery => {
+    const { charging, level } = battery;
+    updateBatteryState({ charging, level });
+  };
+  useEffect(() => {
+    navigator.getBattery &&
+      navigator.getBattery().then(battery => {
+        changeBatteryState(battery);
+        battery.current = battery;
+        battery.addEventListener('chargingchange', onChange);
+        battery.addEventListener('levelchange', onChange);
+      });
+    return () => {
+      battery.removeEventListener('chargingchange', onChange);
+      battery.removeEventListener('levelchange', onChange);
+    };
+  }, []);
+  return [true, batteryState.charging, batteryState.level];
 };

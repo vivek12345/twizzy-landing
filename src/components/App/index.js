@@ -2,6 +2,7 @@ import React, { useRef, useState } from 'react';
 
 //icons (imported as svg using babel plugin)
 import faBatteryFull from '../../icons/bat-charge.svg';
+import faBatteryStatus from '../../icons/bat-status.svg';
 import faVolumeUp from '../../icons/volume-up.svg';
 import faWifi from '../../icons/wifi.svg';
 import faFeather from '../../icons/feather.svg';
@@ -29,7 +30,8 @@ import {
   useFindElementCenter,
   useMousePosition,
   useCanHover,
-  useClock
+  useClock,
+  useBatteryLife
 } from 'utils/hooks';
 import useIntroAnimation from './use-intro-animation';
 
@@ -90,6 +92,14 @@ function Home() {
     setComposeOpen(true);
   };
 
+  const [isSupported, charging, batteryLevel] = useBatteryLife();
+  const menuBarIcons = [faWifi, clock, faVolumeUp];
+  if (isSupported) {
+    const batteryPercentage = `${batteryLevel * 100}%`;
+    const batteryIcon = charging ? faBatteryFull : faBatteryStatus;
+    menuBarIcons.push(batteryPercentage, batteryIcon);
+  }
+
   return (
     <ThemeProvider theme={themes[night ? 'dark' : 'light']}>
       <S.Home>
@@ -102,7 +112,7 @@ function Home() {
             selected={showComposeWindow}
             onClick={() => setComposeOpen(v => !v)}
             mainIcon={faFeather}
-            icons={[faWifi, clock, faVolumeUp, '100%', faBatteryFull]}
+            icons={menuBarIcons}
           />
 
           <Compose
